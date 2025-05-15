@@ -91,9 +91,12 @@ if archivo is not None:
         st.warning("Error en el OCR. Rellena los datos manualmente.")
 
 # ---------- CAMPOS DE TEXTO ----------
-proveedor_input = st.text_input("Proveedor", value=proveedor)
-fecha_input = st.text_input("Fecha", value=fecha)
-cliente_input = st.text_input("Cliente/Referencia", value=cliente)
+proveedor_input = st.markdown("<span style=\"color: black; font-weight: bold;\">Proveedor</span>", unsafe_allow_html=True)
+proveedor_input = st.text_input("", value=proveedor), value=proveedor)
+fecha_input = st.markdown("<span style=\"color: black; font-weight: bold;\">Fecha</span>", unsafe_allow_html=True)
+fecha_input = st.text_input("", value=fecha), value=fecha)
+cliente_input = st.markdown("<span style=\"color: black; font-weight: bold;\">Cliente/Referencia</span>", unsafe_allow_html=True)
+cliente_input = st.text_input("", value=cliente), value=cliente)
 
 # ---------- ENVÍO ----------
 if st.button("Confirmar"):
@@ -118,4 +121,3 @@ if st.button("Confirmar"):
             st.success(f"Albarán subido correctamente como {nombre_archivo}")
         except Exception as e:
             st.error(f"Error subiendo a Dropbox: {e}")
-
