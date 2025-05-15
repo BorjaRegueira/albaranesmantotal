@@ -1,41 +1,87 @@
-
 import streamlit as st
-from datetime import datetime
 import requests
-from PIL import Image
-import io
+import datetime
+import base64
 import dropbox
+from io import BytesIO
+from PIL import Image
 
-# Token de Dropbox (debes mantenerlo en secreto)
-DROPBOX_TOKEN = "sl.u.AFu1ZSyOeAxdy-K-B82_X3JBsQACtNXrNEJpXfQh0RaR3dVFCl3eMzZRJ5kjUEDmDKIB4pJCZGWeZry_ByYbF6Lrt8F8LTVoD--mMcQ72QbKnzWqWiwaOLl9SHT4PR-Fe3Kgb7j-QaiyM7MhPR9UGQ6yC2DNQs9eSVTc15grKOG3xhM8LxTsY-olGvhPhiFw2EUF5ev3APJpQRA0pIYHnKZWyxxGGHKx6k8hZ88oXesrdsEiYgUDe31_UtDIsFjL3gFk8y0TL-kU0ODirdMJgqlI2c2BPC86dq3J95QtxRLD2bMFKYKQjyywu4wa0O4JTXjbuR-YKiQWm0M9jRMcEh6Z5n60OTR694krX7NKQXXwnQVX29EtUXpX7NS_chFpFQuBR2xQu5pAebgtJ6TwQYIUXMe5VJ_8AJNakLsjQcrdPuxVgADW-xQoSUuEGbcbdvS7b0jBJhAJ9OVAyabHTHGfXvNtfA1RzuEGjeu3qKcNymZU1BpJkAriDo_L7vtQg28YRUKYBYjdovngar4dXXsdAWS324JtDrXa0Fi3yM5Ye4ngbMmsIY4F9VeT1QZJ9B7W4ltYkDBnZgdx1y9L0-5F2eCga-R6l9tA3W8r3UtkWNuilINznQx69mVTuSYkIPTP7kMbwqeVBinVpsbpv3S8u0B0-fS0_2WqV9xfmJcve-nKZt3GOQhFjNpk2Xo4UnZZB0m0hI39Olavs6ZrWm8fOGcbX9XO4oipnMDgalC7dYLlTtLZ6z0sdgRSFPlckpn7zmTT3AH7-e0Njq3vnch1jOqsSn_rC0ah235B81pPp5pwzjECGnndKkRQqvza9ZmDMT4cOj01MgA7BP7WtdpBkOMk2MuFWRtswXbENtSvh-lfyS0fGn_Mv4OfpBZsmA6ciZvJfNtyw0WkwpDeDKQGHN43PBKBocW1Q1l8bZ0hNL9zeWvjvBKcF79qp29D9l22PTUz808O6xOwBZSvIg3D4ifjjth45juwsWtsaC7bGtGJZ2aEGZknq41Q1oKCLY7YE-cV5UCseco1pbATca_92DDmJWmKHX54osUgLaYO4_KMIdYpASSEv1MCDsAOznofuZKXNyuLQoy0Mqhd88g8N0BV1_X-1dW1PzFfehPY8wKe2tHQEsOYm1qi2dfMAuhrQ2GkqwfVXaxfbBGrYUMt7KV_d9mj0vQYaB7Xj8zxr7Xoj-AgaUt1Dykny9RnxY23cFvtZCXtwrSVgfL8hYKIKQUcBPGM0mO9dpXPePoy2_qKZEu_6sr9YQ87bKki0jHowA_KPaDeYeCDx4pqxrtv-9B5QknPJSwAIQ1IIKMz6w10PT9NLIam57s7ZS6vwMk"
-
+# ---------- CONFIGURACIÓN DE PÁGINA ----------
 st.set_page_config(page_title="Subida de Albaranes", layout="centered")
 
+# ---------- ESTILOS PERSONALIZADOS ----------
 st.markdown("""
     <style>
-    body, .stApp { background-color: white; }
-    .logo-container { text-align: center; margin-top: 20px; }
-    .logo-container img { width: 350px; }
-    label { color: black !important; font-weight: bold; }
-    input:focus { border: 2px solid #f7941d !important; box-shadow: 0 0 0 0.1rem rgba(247, 148, 29, 0.3) !important; }
-    .stButton > button {
-        background-color: #f7941d; color: white; font-weight: bold;
-        border-radius: 6px; height: 2.5em; width: 100%;
+    body, .main, .stApp {
+        background-color: white;
+        color: black;
+        font-family: 'Arial', sans-serif;
+    }
+    .custom-upload {
+        background-color: #fff5e6;
+        border: 2px solid #f7941d;
+        border-radius: 10px;
+        padding: 2em;
+        margin-bottom: 2em;
+        position: relative;
+    }
+    .custom-upload h3 {
+        color: #f7941d;
+        font-size: 1.3em;
+        margin-bottom: 0.3em;
+        font-weight: bold;
+    }
+    .custom-upload small {
+        color: #333;
+    }
+    .stTextInput>div>div>input {
+        background-color: white;
+        border: 1px solid black;
+        color: black;
+        border-radius: 5px;
+    }
+    .stTextInput>div>div>input:focus {
+        border: 2px solid #f7941d;
+    }
+    .stButton>button {
+        background-color: #f7941d;
+        color: white;
+        border-radius: 8px;
+        height: 3em;
+        font-weight: bold;
+        width: 100%;
+    }
+    img.logo {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        width: 350px;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# Logo
-st.markdown('<div class="logo-container"><img src="static/logo.png"></div>', unsafe_allow_html=True)
+# ---------- LOGO ----------
+st.markdown("<img src='https://raw.githubusercontent.com/BorjaRegueira/albaranesmantotal/main/static/logo.png' class='logo'>", unsafe_allow_html=True)
 
-# Subida y OCR
-uploaded_file = st.file_uploader("Sube el albarán", type=["jpg", "jpeg", "png"])
-proveedor = fecha = cliente = ""
+st.write("## Sube el albarán")
+archivo = st.file_uploader("", type=["jpg", "jpeg", "png"], label_visibility="collapsed")
 
-if uploaded_file:
-    image_bytes = uploaded_file.read()
+proveedor = ""
+fecha = ""
+cliente = ""
+
+# ---------- EXTRACCIÓN OCR ----------
+if archivo is not None:
+    image = Image.open(archivo)
+    buffered = BytesIO()
+    image.save(buffered, format="JPEG")
+    img_bytes = buffered.getvalue()
+
     try:
-        response = requests.post("https://ocr.mantotal.app/ocr", files={"file": image_bytes})
+        response = requests.post(
+            "https://ocr.mantotal.app/extraer",
+            files={"image": img_bytes}
+        )
         response.raise_for_status()
         data = response.json()
         proveedor = data.get("proveedor", "")
@@ -44,25 +90,31 @@ if uploaded_file:
     except:
         st.warning("Error en el OCR. Rellena los datos manualmente.")
 
-# Inputs
-proveedor = st.text_input("Proveedor", value=proveedor)
-fecha_raw = st.text_input("Fecha", value=fecha)
-cliente = st.text_input("Cliente/Referencia", value=cliente)
+# ---------- CAMPOS DE TEXTO ----------
+proveedor_input = st.text_input("Proveedor", value=proveedor)
+fecha_input = st.text_input("Fecha", value=fecha)
+cliente_input = st.text_input("Cliente/Referencia", value=cliente)
 
-# Confirmación
-if st.button("Confirmar") and uploaded_file:
-    try:
-        fecha_fmt = datetime.strptime(fecha_raw, "%Y-%m-%d").strftime("%y%m%d")
-    except:
-        fecha_fmt = fecha_raw
-    nuevo_nombre = f"{proveedor}-{fecha_fmt}-{cliente}.pdf"
+# ---------- ENVÍO ----------
+if st.button("Confirmar"):
+    if not (proveedor_input and fecha_input and cliente_input):
+        st.error("Por favor, completa todos los campos antes de confirmar.")
+    elif archivo is None:
+        st.error("Debes subir un archivo antes de confirmar.")
+    else:
+        # Procesar archivo: renombrar y subir a Dropbox
+        nombre_archivo = f"{proveedor_input.strip().upper()}-{fecha_input.strip()}-{cliente_input.strip().upper()}.pdf"
 
-    image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-    pdf_bytes = io.BytesIO()
-    image.save(pdf_bytes, format="PDF")
-    pdf_bytes.seek(0)
+        # Convertir imagen a PDF
+        img = Image.open(archivo).convert("RGB")
+        buffer_pdf = BytesIO()
+        img.save(buffer_pdf, format="PDF")
+        buffer_pdf.seek(0)
 
-    dbx = dropbox.Dropbox(DROPBOX_TOKEN)
-    dbx.files_upload(pdf_bytes.read(), f"/{nuevo_nombre}", mode=dropbox.files.WriteMode("overwrite"))
-
-    st.success(f"Archivo subido como {nuevo_nombre}")
+        # Subir a Dropbox
+        try:
+            dbx = dropbox.Dropbox(st.secrets["DROPBOX_TOKEN"])
+            dbx.files_upload(buffer_pdf.read(), f"/Albaranes/{nombre_archivo}", mode=dropbox.files.WriteMode.overwrite)
+            st.success(f"Albarán subido correctamente como {nombre_archivo}")
+        except Exception as e:
+            st.error(f"Error subiendo a Dropbox: {e}")
