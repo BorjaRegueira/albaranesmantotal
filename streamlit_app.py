@@ -1,48 +1,36 @@
+
 import streamlit as st
+from datetime import datetime
 import requests
 from PIL import Image
 import io
-import base64
-from datetime import datetime
+import dropbox
 
-st.set_page_config(layout="centered")
+# Token de Dropbox (debes mantenerlo en secreto)
+DROPBOX_TOKEN = "sl.u.AFu1ZSyOeAxdy-K-B82_X3JBsQACtNXrNEJpXfQh0RaR3dVFCl3eMzZRJ5kjUEDmDKIB4pJCZGWeZry_ByYbF6Lrt8F8LTVoD--mMcQ72QbKnzWqWiwaOLl9SHT4PR-Fe3Kgb7j-QaiyM7MhPR9UGQ6yC2DNQs9eSVTc15grKOG3xhM8LxTsY-olGvhPhiFw2EUF5ev3APJpQRA0pIYHnKZWyxxGGHKx6k8hZ88oXesrdsEiYgUDe31_UtDIsFjL3gFk8y0TL-kU0ODirdMJgqlI2c2BPC86dq3J95QtxRLD2bMFKYKQjyywu4wa0O4JTXjbuR-YKiQWm0M9jRMcEh6Z5n60OTR694krX7NKQXXwnQVX29EtUXpX7NS_chFpFQuBR2xQu5pAebgtJ6TwQYIUXMe5VJ_8AJNakLsjQcrdPuxVgADW-xQoSUuEGbcbdvS7b0jBJhAJ9OVAyabHTHGfXvNtfA1RzuEGjeu3qKcNymZU1BpJkAriDo_L7vtQg28YRUKYBYjdovngar4dXXsdAWS324JtDrXa0Fi3yM5Ye4ngbMmsIY4F9VeT1QZJ9B7W4ltYkDBnZgdx1y9L0-5F2eCga-R6l9tA3W8r3UtkWNuilINznQx69mVTuSYkIPTP7kMbwqeVBinVpsbpv3S8u0B0-fS0_2WqV9xfmJcve-nKZt3GOQhFjNpk2Xo4UnZZB0m0hI39Olavs6ZrWm8fOGcbX9XO4oipnMDgalC7dYLlTtLZ6z0sdgRSFPlckpn7zmTT3AH7-e0Njq3vnch1jOqsSn_rC0ah235B81pPp5pwzjECGnndKkRQqvza9ZmDMT4cOj01MgA7BP7WtdpBkOMk2MuFWRtswXbENtSvh-lfyS0fGn_Mv4OfpBZsmA6ciZvJfNtyw0WkwpDeDKQGHN43PBKBocW1Q1l8bZ0hNL9zeWvjvBKcF79qp29D9l22PTUz808O6xOwBZSvIg3D4ifjjth45juwsWtsaC7bGtGJZ2aEGZknq41Q1oKCLY7YE-cV5UCseco1pbATca_92DDmJWmKHX54osUgLaYO4_KMIdYpASSEv1MCDsAOznofuZKXNyuLQoy0Mqhd88g8N0BV1_X-1dW1PzFfehPY8wKe2tHQEsOYm1qi2dfMAuhrQ2GkqwfVXaxfbBGrYUMt7KV_d9mj0vQYaB7Xj8zxr7Xoj-AgaUt1Dykny9RnxY23cFvtZCXtwrSVgfL8hYKIKQUcBPGM0mO9dpXPePoy2_qKZEu_6sr9YQ87bKki0jHowA_KPaDeYeCDx4pqxrtv-9B5QknPJSwAIQ1IIKMz6w10PT9NLIam57s7ZS6vwMk"
 
-# Logo centrado
-st.markdown(
-    """
-    <div style="text-align: center;">
-        <img src="https://raw.githubusercontent.com/BorjaRegueira/albaranesmantotal/main/static/logo.png" width="175">
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+st.set_page_config(page_title="Subida de Albaranes", layout="centered")
 
-# Contenedor principal
-st.markdown(
-    """
-    <div style="background-color: #fff6ea; border: 2px solid #f7941d; border-radius: 10px; padding: 1.5em; margin: 1em auto; max-width: 600px;">
-        <div style="display: flex; align-items: center; justify-content: space-between;">
-            <div>
-                <h4 style="color: #f7941d; margin: 0;">Suelta el albarán aquí</h4>
-                <p style="margin: 0; color: #333;">o explora archivos</p>
-            </div>
-            <div>
-                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="#f7941d" viewBox="0 0 16 16">
-                  <path d="M.5 9.9A.5.5 0 0 1 1 9.5h14a.5.5 0 0 1 .5.4v4.6a.5.5 0 0 1-.5.5H1a.5.5 0 0 1-.5-.5V9.9zm7.5-.5 4-4H9V1.5a.5.5 0 0 0-1 0V5.4H5l4 4z"/>
-                </svg>
-            </div>
-        </div>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+st.markdown("""
+    <style>
+    body, .stApp { background-color: white; }
+    .logo-container { text-align: center; margin-top: 20px; }
+    .logo-container img { width: 350px; }
+    label { color: black !important; font-weight: bold; }
+    input:focus { border: 2px solid #f7941d !important; box-shadow: 0 0 0 0.1rem rgba(247, 148, 29, 0.3) !important; }
+    .stButton > button {
+        background-color: #f7941d; color: white; font-weight: bold;
+        border-radius: 6px; height: 2.5em; width: 100%;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-# Subida de archivo
-uploaded_file = st.file_uploader("", type=["png", "jpg", "jpeg"], label_visibility="collapsed")
+# Logo
+st.markdown('<div class="logo-container"><img src="static/logo.png"></div>', unsafe_allow_html=True)
 
-proveedor = ""
-fecha = ""
-cliente = ""
+# Subida y OCR
+uploaded_file = st.file_uploader("Sube el albarán", type=["jpg", "jpeg", "png"])
+proveedor = fecha = cliente = ""
 
 if uploaded_file:
     image_bytes = uploaded_file.read()
@@ -54,51 +42,27 @@ if uploaded_file:
         fecha = data.get("fecha", "")
         cliente = data.get("cliente", "")
     except:
-        st.warning("Error conectando al OCR. Rellena manualmente.")
+        st.warning("Error en el OCR. Rellena los datos manualmente.")
 
-# Vista previa
-st.markdown("<h6 style='text-align: center;'>Vista previa del albarán</h6>", unsafe_allow_html=True)
-
-css = """
-<style>
-    label {
-        color: black !important;
-        font-weight: 500;
-    }
-    input:focus {
-        border: 2px solid #f7941d !important;
-        box-shadow: 0 0 0 0.1rem rgba(247, 148, 29, 0.3) !important;
-    }
-</style>
-"""
-
-st.markdown(css, unsafe_allow_html=True)
-
-col1, col2 = st.columns(2)
-
+# Inputs
 proveedor = st.text_input("Proveedor", value=proveedor)
-col1, col2 = st.columns(2)
-fecha = col1.text_input("Fecha", value=fecha)
-cliente = col2.text_input("Cliente/Referencia", value=cliente)
+fecha_raw = st.text_input("Fecha", value=fecha)
+cliente = st.text_input("Cliente/Referencia", value=cliente)
 
-# Botón de confirmar
-st.markdown("""
-    <style>
-    div.stButton > button {
-        background-color: #f7941d;
-        color: white;
-        font-weight: bold;
-        width: 100%;
-        padding: 10px;
-        border: none;
-        border-radius: 5px;
-        margin-top: 1em;
-    }
-    div.stButton > button:hover {
-        background-color: #e07a00;
-    }
-    </style>
-""", unsafe_allow_html=True)
+# Confirmación
+if st.button("Confirmar") and uploaded_file:
+    try:
+        fecha_fmt = datetime.strptime(fecha_raw, "%Y-%m-%d").strftime("%y%m%d")
+    except:
+        fecha_fmt = fecha_raw
+    nuevo_nombre = f"{proveedor}-{fecha_fmt}-{cliente}.pdf"
 
-if st.button("Confirmar"):
-    st.success(f"Subido: {proveedor}-{fecha}-{cliente}")
+    image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    pdf_bytes = io.BytesIO()
+    image.save(pdf_bytes, format="PDF")
+    pdf_bytes.seek(0)
+
+    dbx = dropbox.Dropbox(DROPBOX_TOKEN)
+    dbx.files_upload(pdf_bytes.read(), f"/{nuevo_nombre}", mode=dropbox.files.WriteMode("overwrite"))
+
+    st.success(f"Archivo subido como {nuevo_nombre}")
