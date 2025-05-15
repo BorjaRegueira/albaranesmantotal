@@ -92,11 +92,11 @@ if archivo is not None:
 
 # ---------- CAMPOS DE TEXTO ----------
 proveedor_input = st.markdown("<span style=\"color: black; font-weight: bold;\">Proveedor</span>", unsafe_allow_html=True)
-proveedor_input = st.text_input("", value=proveedor), value=proveedor)
+proveedor_input = st.text_input("Proveedor", value=proveedor, label_visibility="visible")
 fecha_input = st.markdown("<span style=\"color: black; font-weight: bold;\">Fecha</span>", unsafe_allow_html=True)
-fecha_input = st.text_input("", value=fecha), value=fecha)
+fecha_input = st.text_input("Fecha", value=fecha, label_visibility="visible")
 cliente_input = st.markdown("<span style=\"color: black; font-weight: bold;\">Cliente/Referencia</span>", unsafe_allow_html=True)
-cliente_input = st.text_input("", value=cliente), value=cliente)
+cliente_input = st.text_input("Cliente", value=cliente, label_visibility="visible")
 
 # ---------- ENVÍO ----------
 if st.button("Confirmar"):
